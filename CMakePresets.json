@@ -1,0 +1,25 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "radarscraper",
+            "displayName": "GCC 15.2.1 x86_64-redhat-linux",
+            "description": "Using compilers: C = /usr/lib64/ccache/gcc, CXX = /usr/lib64/ccache/g++",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/lib64/ccache/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/lib64/ccache/g++",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "radarscraper",
+            "description": "",
+            "displayName": "",
+            "inherits": [
+                "radarscraper"
+            ]
+        }
+    ]
+}
