@@ -1,68 +1,76 @@
 #pragma once
-// Common header file with most default includes and functions that will be used by most files
 
-// Our dev environment is Linux so we set UNIX
-#define UNIX
-
-#include <iostream>
 #include <string>
 #include <map>
 #include <vector>
+#include <iostream>
 
-#ifdef UNIX
+#ifdef __linux__
 #include <unistd.h>
-#else
+#endif
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include "measure.h"
+#ifdef Analytics
+#include <chrono>
+#include <future>
+#endif
+
 #include "config.h"
 
-static radarscraper::Config config("radarscraper.conf");
-
-struct ScrapeReport
+#ifdef Analytics
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::nanoseconds nano;
+class Measure
 {
-    int runtime, total_roads, total_radars, total_segments, exit_code;
-    std::string errors;
+public:
+    Measure()
+    {
+        reset();
+    }
+
+    void reset()
+    {
+        s_time = Clock::now();
+    }
+
+    // Return value in ms as a float with a max precision of 6 (ns / 10^6)
+    const double measure()
+    {
+        uint64_t tijd = std::chrono::duration_cast<nano>(Clock::now() - s_time).count();
+        return (double)((double)tijd / (double)1e+6);
+    }
+
+private:
+    Clock::time_point s_time;
 };
 
-// Some handy inline functions
-inline void ltrim(std::string &s)
-{
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
-                                    { return !std::isspace(ch); }));
-}
+static Measure stopwatch;
+#endif
 
-inline void rtrim(std::string &s)
-{
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
-                         { return !std::isspace(ch); })
-                .base(),
-            s.end());
-}
+static const int MAX_RETRY = 200;
+static const int RETRY_AFTER = 5;
 
-inline void trim(std::string &s)
-{
-    rtrim(s);
-    ltrim(s);
-}
+// *** START Command line parameters, see handle_arguments
+inline const std::string options[] = {"-c|--continious", "-s|--summary", "-i|--interval"};
+inline bool continious = false;
+inline bool print_summary = false;
+inline int poll_interval = 60;
 
 /**
- * @brief  Handles error messages
+ * @brief  Handles error messages and terminates program if retries exhausted
  * @param message  Brief details (eg. Error while commiting to database)
  * @param what  The exception what message or a custom error
- * @param retries  The amount of retries for the erroneous function
- * @param t_sleep  The amount of time to sleep (0 = off)
- * @param max_retires  The maximum amount of retries before program gets killed
- * @param exit_code  The exit code to use when terminate conditions are met
- *  Prints the current error and will either sleep or terminate program when
- *  retries is equal or higher than max retries.
- */
-static void showError(const std::string &message, const std::string &what, const int retries, const int t_sleep = 0, const int max_retries = 200, const int exit_code = -1)
+ * @param retries  Amount of sequental error retries
+ * @param t_sleep  (optional) The amount of time to sleep (0 = off)
+ * @param max_retires  (optional) Maximum amount of retries before termination
+ * @param exit_code  (optional) The exit code to use when terminate retries exhausted
+ *
+ **/
+static void show_error(const std::string &message, const std::string &what, const int retries, const int t_sleep = 0, const int max_retries = 200, const int exit_code = -1)
 {
-    std::cout << message;
-    if (!message.ends_with("."))
-        std::cout << ".";
+    std::cout << message << message.ends_with(".") ? "" : ".";
     std::cout << " Error: " << message << std::endl;
 
     if (max_retries > 0 && retries >= max_retries)
@@ -137,7 +145,7 @@ static void handle_arguments(int argc, char *const argv[], const std::string *op
                 {
                     std::ostringstream streamstr;
                     streamstr << vals;
-                    showError("Parameter error", std::string("No value after ").append(streamstr.str()), 0, 0, 0);
+                    show_error("Parameter error", std::string("No value after ").append(streamstr.str()), 0, 0, 0);
                 }
 
                 switch (t_arg) {
@@ -153,12 +161,33 @@ static void handle_arguments(int argc, char *const argv[], const std::string *op
                     vals = std::atof(argv[++x]);
                     break;
                 default:
-                    if constexpr ( std::is_same<T, std::string>::value ) {
+                   if constexpr ( std::is_same<T, std::string>::value ) {
                         vals = std::string(argv[++x]);
-                    }
+                   }
                     break;
                 };
             }
         }
     i++; }(), ...);
 };
+
+// Useful tools
+inline void ltrim(std::string &s)
+{
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
+                                    { return !std::isspace(ch); }));
+}
+
+inline void rtrim(std::string &s)
+{
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
+                         { return !std::isspace(ch); })
+                .base(),
+            s.end());
+}
+
+inline void trim(std::string &s)
+{
+    rtrim(s);
+    ltrim(s);
+}

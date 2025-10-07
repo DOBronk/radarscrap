@@ -1,4 +1,3 @@
-#include <fstream>
 #include "scraper.h"
 
 const int MIN_DATA_LEN = 250; // If the returned response is less than this it can't be correct with our data
@@ -12,10 +11,11 @@ scrape_result Scraper::scrape(ParserResults &results)
     simdjson::padded_string r;
     results.totals = {0, 0, 0};
     res.success = false;
-
+    cpr::Session session;
+    session;
     try
     {
-        r = cpr::Get(cpr::Url{config.target()}, cpr::Header{{"accept", "application/json"}}).text;
+        r = cpr::Get(cpr::Url{config.target()}, cpr::Header{{"accept", "application/json"}}, cpr::Proxies({{"https", "socks5://127.0.0.1:9150/"}})).text;
     }
     catch (exception Ex)
     {

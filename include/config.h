@@ -5,8 +5,7 @@
 #include <map>
 
 namespace radarscraper
-{
-    class Config
+{    class Config
     {
     public:
         Config(const std::string &filename)
@@ -27,5 +26,6 @@ namespace radarscraper
         void readfile(const std::string &);
         void parseline(const std::string &);
     };
-
+    
+    static radarscraper::Config config("radarscraper.conf");
 }

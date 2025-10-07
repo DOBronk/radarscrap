@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 
-#include "measure.h"
 #include "simdjson.h"
 
 namespace radarscraper

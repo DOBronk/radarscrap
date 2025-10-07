@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(radarscraper) 
 set(mysql-concpp_DIR "/usr/lib64/cmake/mysql-concpp")
-find_package(mysql-concpp REQUIRED)
+find_package(mysql-concpp)
 include(FetchContent)
 FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git GIT_TAG da40186618909b1a7363d4e4495aa899c6e0eb75)
 FetchContent_MakeAvailable(cpr)
@@ -17,7 +17,8 @@ set(SOURCES
     src/config.cpp 
     src/simdjson.cpp
 )
-add_compile_options(-O3)
-add_executable(radarscraper ${SOURCES})
-target_link_libraries(radarscraper mysql::concpp cpr::cpr ${CPR_LIBRARIES} )
+add_compile_definitions("Analytics")
+add_compile_options(-O2) # Doesn't have to be optimized much
+add_executable(rscrap ${SOURCES})
+target_link_libraries(rscrap mysql::concpp cpr::cpr )
 
