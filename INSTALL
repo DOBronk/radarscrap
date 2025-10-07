@@ -1,0 +1,6 @@
+The most easy way is to just run: "cmake ." in the main directory, followed my make command if previous one was successful.
+
+Requires:
+- libcurl >1.12 
+- OpenSSL >3.5 
+- MySQL C++ Connector library (preferably 9.4.0)
