@@ -10,6 +10,8 @@
 using namespace std;
 using namespace radarscraper;
 
+Stopwatch stopwatch;
+
 int retries = 0;
 
 int main(int argc, char *const argv[])

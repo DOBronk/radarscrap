@@ -22,31 +22,47 @@
 #ifdef Analytics
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::nanoseconds nano;
-class Measure
+class Stopwatch
 {
 public:
-    Measure()
+    Stopwatch()
     {
         reset();
     }
-
-    void reset()
+    /**
+     * @brief Restart measuring from this point
+     */
+    inline void reset()
     {
         s_time = Clock::now();
     }
-
-    // Return value in ms as a float with a max precision of 6 (ns / 10^6)
-    const double measure()
+    /**
+     * @brief Get start time as time_point
+     */
+    inline Clock::time_point begin()
     {
-        uint64_t tijd = std::chrono::duration_cast<nano>(Clock::now() - s_time).count();
-        return (double)((double)tijd / (double)1e+6);
+        return s_time;
+    }
+    /**
+     * @brief Get current time as time_point
+     */
+    inline Clock::time_point end()
+    {
+        return Clock::now();
+    }
+
+    /**
+     * @brief Get current time since start or last reset
+     * @return (double) value in ms of time passed
+     */
+    inline const double measure()
+    {
+        return (double)std::chrono::duration_cast<nano>(Clock::now() - s_time).count() / 1e+6;
     }
 
 private:
     Clock::time_point s_time;
 };
-
-static Measure stopwatch;
 #endif
 
 static const int MAX_RETRY = 200;
@@ -136,8 +152,7 @@ static void handle_arguments(int argc, char *const argv[], const std::string *op
     ([&]
      {     
         for(int x = 1; x < argc; x++)
-        {
-            if (alias_exists(std::string(argv[x]), options[i]))
+        if (alias_exists(std::string(argv[x]), options[i]))
             {
                 char t_arg = typeid(vals).name()[0];
                 
@@ -166,7 +181,6 @@ static void handle_arguments(int argc, char *const argv[], const std::string *op
                    }
                     break;
                 };
-            }
         }
     i++; }(), ...);
 };
